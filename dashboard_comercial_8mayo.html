@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Comercial · 8 Mayo 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0e0f11;
+  --bg2: #16181c;
+  --bg3: #1e2027;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0f0f0;
+  --text2: #9a9fa8;
+  --text3: #5a5f6a;
+  --green: #22d07a;
+  --green-bg: rgba(34,208,122,0.1);
+  --amber: #f5a623;
+  --amber-bg: rgba(245,166,35,0.1);
+  --red: #ff4d4d;
+  --red-bg: rgba(255,77,77,0.1);
+  --orange: #ff7a3d;
+  --orange-bg: rgba(255,122,61,0.1);
+  --blue: #4d9fff;
+  --blue-bg: rgba(77,159,255,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+
+/* Layout */
+.app { max-width: 480px; margin: 0 auto; padding: 16px 14px 40px; }
+@media (min-width: 700px) { .app { max-width: 760px; } }
+@media (min-width: 1100px) { .app { max-width: 1080px; } }
+
+/* Header */
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 0.5px solid var(--border); }
+.header-left h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+.header-left p { font-size: 12px; color: var(--text2); margin-top: 3px; }
+.header-badge { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--red-bg); color: var(--red); border: 0.5px solid rgba(255,77,77,0.3); white-space: nowrap; }
+
+/* Nav tabs */
+.nav { display: flex; gap: 4px; margin-bottom: 20px; background: var(--bg2); border-radius: var(--radius-sm); padding: 4px; }
+.nav-tab { flex: 1; text-align: center; padding: 8px 6px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all .15s; user-select: none; }
+.nav-tab.active { background: var(--bg3); color: var(--text); }
+
+/* Grid helpers */
+.g2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.g4 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+@media (min-width: 700px) { .g4 { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+@media (min-width: 700px) { .g2 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+
+/* KPI Card */
+.kpi { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 15px; }
+.kpi-label { font-size: 11px; color: var(--text3); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px; }
+.kpi-val { font-size: 26px; font-weight: 600; line-height: 1; font-family: 'DM Mono', monospace; letter-spacing: -1px; }
+.kpi-sub { font-size: 11px; color: var(--text2); margin-top: 5px; }
+.kpi-val.red { color: var(--red); }
+.kpi-val.green { color: var(--green); }
+.kpi-val.amber { color: var(--amber); }
+
+/* Section */
+.sec { font-size: 11px; font-weight: 500; color: var(--text3); letter-spacing: .06em; text-transform: uppercase; margin: 22px 0 10px; }
+
+/* Card */
+.card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 15px; margin-bottom: 10px; }
+
+/* Status banner */
+.banner { border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px; border: 0.5px solid; }
+.banner.red { background: var(--red-bg); border-color: rgba(255,77,77,0.2); }
+.banner.green { background: var(--green-bg); border-color: rgba(34,208,122,0.2); }
+.banner-ico { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.banner.red .banner-ico { background: rgba(255,77,77,0.15); }
+.banner.green .banner-ico { background: rgba(34,208,122,0.15); }
+.banner-title { font-size: 15px; font-weight: 600; }
+.banner.red .banner-title { color: var(--red); }
+.banner.green .banner-title { color: var(--green); }
+.banner-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+/* Tienda list */
+.tienda-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 13px 15px; margin-bottom: 8px; cursor: pointer; transition: border-color .15s; }
+.tienda-card:hover { border-color: var(--border2); }
+.tienda-card.expanded { border-color: var(--border2); }
+.tienda-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.tienda-id { font-size: 15px; font-weight: 600; }
+.tienda-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.tienda-right { text-align: right; }
+.tienda-pct { font-size: 20px; font-weight: 700; font-family: 'DM Mono', monospace; }
+.tienda-pct-label { font-size: 10px; color: var(--text2); margin-top: 1px; }
+.badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-left: 6px; letter-spacing: .03em; }
+.badge.ok { background: var(--green-bg); color: var(--green); }
+.badge.warn { background: var(--amber-bg); color: var(--amber); }
+.badge.risk { background: var(--orange-bg); color: var(--orange); }
+.badge.crit { background: var(--red-bg); color: var(--red); }
+.prog-track { height: 4px; background: var(--bg3); border-radius: 99px; overflow: hidden; margin: 10px 0 4px; }
+.prog-fill { height: 4px; border-radius: 99px; transition: width .4s ease; }
+.prog-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); }
+
+/* Expand panel */
+.expand-panel { display: none; margin-top: 14px; padding-top: 14px; border-top: 0.5px solid var(--border); }
+.tienda-card.expanded .expand-panel { display: block; }
+.mini-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.depto-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.depto-name { font-size: 11px; color: var(--text); min-width: 106px; max-width: 106px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.depto-track { flex: 1; height: 4px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+.depto-fill { height: 4px; border-radius: 99px; }
+.depto-pct { font-size: 11px; font-weight: 600; min-width: 36px; text-align: right; font-family: 'DM Mono', monospace; }
+.zero-tag { font-size: 9px; background: var(--red-bg); color: var(--red); border-radius: 3px; padding: 1px 4px; margin-left: 4px; }
+.gen-row { display: flex; gap: 12px; margin-top: 10px; }
+.gen-block { flex: 1; background: var(--bg3); border-radius: var(--radius-sm); padding: 8px 10px; }
+.gen-name { font-size: 10px; color: var(--text3); margin-bottom: 3px; }
+.gen-val { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.gen-sub { font-size: 10px; color: var(--text2); margin-top: 1px; }
+
+/* Chart containers */
+.chart-wrap { position: relative; width: 100%; }
+
+/* Mix bars */
+.mix-row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.mix-row:last-child { margin-bottom: 0; }
+.mix-name { font-size: 12px; color: var(--text); min-width: 130px; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mix-track { flex: 1; height: 5px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+.mix-fill { height: 5px; border-radius: 99px; }
+.mix-val { font-size: 11px; color: var(--text2); min-width: 70px; text-align: right; font-family: 'DM Mono', monospace; }
+
+/* Alerts */
+.alert-item { border-left: 2px solid; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 12px; margin-bottom: 8px; }
+.alert-item.red { border-color: var(--red); background: var(--red-bg); }
+.alert-item.amber { border-color: var(--amber); background: var(--amber-bg); }
+.alert-item.green { border-color: var(--green); background: var(--green-bg); }
+.alert-title { font-size: 13px; font-weight: 600; }
+.alert-item.red .alert-title { color: var(--red); }
+.alert-item.amber .alert-title { color: var(--amber); }
+.alert-item.green .alert-title { color: var(--green); }
+.alert-body { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
+
+/* Acciones */
+.acc-list { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.acc-row { display: flex; gap: 12px; padding: 12px 15px; border-bottom: 0.5px solid var(--border); align-items: flex-start; }
+.acc-row:last-child { border-bottom: none; }
+.acc-num { width: 22px; height: 22px; border-radius: 50%; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--text2); flex-shrink: 0; margin-top: 1px; }
+.acc-text { font-size: 13px; color: var(--text); line-height: 1.55; }
+.acc-text strong { color: var(--text); font-weight: 600; }
+
+/* Stats row */
+.stats-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-top: 10px; }
+.stat-mini { background: var(--bg3); border-radius: var(--radius-sm); padding: 8px 10px; }
+.stat-mini-label { font-size: 10px; color: var(--text3); margin-bottom: 3px; }
+.stat-mini-val { font-size: 14px; font-weight: 600; font-family: 'DM Mono', monospace; }
+
+/* Page */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Seguimiento comercial</h1>
+      <p>Viernes 8 mayo 2026 · Corte 2:00 p.m. · 10 tiendas</p>
+    </div>
+    <div class="header-badge">⚠ Día en riesgo</div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-tab active" onclick="showPage('resumen',this)">Resumen</div>
+    <div class="nav-tab" onclick="showPage('tiendas',this)">Tiendas</div>
+    <div class="nav-tab" onclick="showPage('categorias',this)">Categorías</div>
+    <div class="nav-tab" onclick="showPage('alertas',this)">Alertas</div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="page active" id="page-resumen">
+
+    <div class="banner red">
+      <div class="banner-ico">⚠</div>
+      <div>
+        <div class="banner-title">Día crítico — ninguna tienda cierra meta</div>
+        <div class="banner-sub">Sin aceleración en tarde, el cierre promedio proyecta 52%</div>
+      </div>
+    </div>
+
+    <div class="g2" style="margin-bottom:10px">
+      <div class="kpi">
+        <div class="kpi-label">Venta acumulada</div>
+        <div class="kpi-val">$17.7M</div>
+        <div class="kpi-sub">de $73.6M meta del día</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Cumplimiento</div>
+        <div class="kpi-val red">24.0%</div>
+        <div class="kpi-sub">esperado a esta hora: ~32%</div>
+      </div>
+    </div>
+    <div class="g4" style="margin-bottom:10px">
+      <div class="kpi">
+        <div class="kpi-label">Ticket prom.</div>
+        <div class="kpi-val" style="font-size:20px">$130K</div>
+        <div class="kpi-sub">saludable</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">UPT</div>
+        <div class="kpi-val" style="font-size:20px">2.3</div>
+        <div class="kpi-sub">uds / ticket</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Transacciones</div>
+        <div class="kpi-val" style="font-size:20px">136</div>
+        <div class="kpi-sub">308 unidades</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Hora pico</div>
+        <div class="kpi-val green" style="font-size:20px">11 am</div>
+        <div class="kpi-sub">caída en 1 pm</div>
+      </div>
+    </div>
+
+    <div class="sec">Venta por hora — total cadena</div>
+    <div class="card">
+      <div class="chart-wrap" style="height:180px"><canvas id="chartHora" role="img" aria-label="Ventas por hora: 9am $1.1M, 10am $4M, 11am $4.6M, 12pm $3.5M, 1pm $2M, 2pm $2.5M">Ventas horarias de la cadena.</canvas></div>
+    </div>
+
+    <div class="sec">Proyección de cierre por tienda</div>
+    <div class="card">
+      <div class="chart-wrap" style="height:340px"><canvas id="chartProy" role="img" aria-label="Proyección de cierre por tienda vs meta 100%">Proyección de cierre por tienda.</canvas></div>
+    </div>
+
+  </div>
+
+  <!-- TIENDAS -->
+  <div class="page" id="page-tiendas">
+    <div class="sec" style="margin-top:4px">Toca una tienda para ver detalle</div>
+    <div id="lista-tiendas"></div>
+  </div>
+
+  <!-- CATEGORÍAS -->
+  <div class="page" id="page-categorias">
+    <div class="sec" style="margin-top:4px">Mix por departamento</div>
+    <div class="card" id="mix-deptos"></div>
+    <div class="sec">Mix por género</div>
+    <div class="card" id="mix-genero"></div>
+  </div>
+
+  <!-- ALERTAS -->
+  <div class="page" id="page-alertas">
+    <div class="sec" style="margin-top:4px">Alertas del día</div>
+    <div class="alert-item red">
+      <div class="alert-title">952 y B71 — estado crítico</div>
+      <div class="alert-body">Proyectan cierre 30–31%. Gap combinado ~$12M. 952 tiene solo 15 txn; B71 solo 2. Acción de piso inmediata.</div>
+    </div>
+    <div class="alert-item red">
+      <div class="alert-title">Caída brusca a la 1 p.m.</div>
+      <div class="alert-body">La cadena cayó de $4.6M (11 am) a $2.0M (1 pm). Pérdida de tráfico en turno medio en la mayoría de tiendas.</div>
+    </div>
+    <div class="alert-item amber">
+      <div class="alert-title">B54, A87, B88, V01 — zona riesgo</div>
+      <div class="alert-body">Proyectan 44–57%. UPT por debajo del potencial. Oportunidad en adición en caja: accesorios y medias.</div>
+    </div>
+    <div class="alert-item amber">
+      <div class="alert-title">Masculino rezagado en 952</div>
+      <div class="alert-body">Masculino representa 53% de la meta en 952 pero solo el 27% de la venta real. Activar atención dirigida.</div>
+    </div>
+    <div class="alert-item amber">
+      <div class="alert-title">Bermuda y Camisa: $0 en 952</div>
+      <div class="alert-body">Dos categorías con meta combinada de $2.4M acumulan cero ventas. Revisar exhibición y stock.</div>
+    </div>
+    <div class="alert-item green">
+      <div class="alert-title">V89 y V95 — tiendas destacadas</div>
+      <div class="alert-body">Proyectan 81–83%. Replicar prácticas de piso en tiendas rezagadas. Contactar gerentes ahora.</div>
+    </div>
+    <div class="sec">Acciones prioritarias — 3 a 7 p.m.</div>
+    <div class="acc-list">
+      <div class="acc-row"><div class="acc-num">1</div><div class="acc-text"><strong>B71 — verificación operativa:</strong> confirmar dotación y apertura completa. Solo 2 txn en el día sugiere novedad operativa.</div></div>
+      <div class="acc-row"><div class="acc-num">2</div><div class="acc-text"><strong>952 — activar bermuda y camisa:</strong> $2.4M de meta con 0% de avance. Revisar exhibición y maniquíes ahora.</div></div>
+      <div class="acc-row"><div class="acc-num">3</div><div class="acc-text"><strong>Todas las tiendas — 5 a 7 pm:</strong> pico histórico (~28% de la venta). Equipo completo y vitrina refrescada antes de las 4 pm.</div></div>
+      <div class="acc-row"><div class="acc-num">4</div><div class="acc-text"><strong>B54, B88, A87 — adición en caja:</strong> UPT 1.8–2.0 tiene espacio. Sugerir medias, accesorios y complementos.</div></div>
+      <div class="acc-row"><div class="acc-num">5</div><div class="acc-text"><strong>Benchmarking:</strong> llamar gerentes de V89 y V95 para replicar tácticas de cierre en tiendas críticas.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DATA = {"fecha":"2026-05-08","corte":"14:00","global":{"total_real":17691050,"total_meta":73599997,"cumpl_pct":24.0,"txn":136,"ticket":130081,"upt":2.3,"uds":308},"hora_global":{"9":1070400,"10":3994350,"11":4622900,"12":3484000,"13":2021900,"14":2497500},"dept_global":[{"Departamento":"PANTALON JEAN","importe":5954500.0,"uds":55},{"Departamento":"CAMISETA","importe":5198100.0,"uds":119},{"Departamento":"BERMUDA","importe":1518400.0,"uds":16},{"Departamento":"ACCESORIOS MARROQUINERIA","importe":1019600.0,"uds":14},{"Departamento":"BLUSA","importe":928700.0,"uds":13},{"Departamento":"ACCESORIOS TEXTILES","importe":739600.0,"uds":61}],"gen_global":{"Femenino":9641100,"Masculino":8049950},"tiendas":[{"id":"V89","meta":5100000,"real":1966900,"txn":14,"uds":31,"ticket":140493,"upt":2.2,"proy_pct":82.5,"acum_pct":38.6,"proy_val":4207500,"horas":[{"h":9,"real_acum":179700,"esp_acum":274890},{"h":10,"real_acum":736700,"esp_acum":826710},{"h":11,"real_acum":1362800,"esp_acum":1378020},{"h":12,"real_acum":1402700,"esp_acum":1757970},{"h":13,"real_acum":1592300,"esp_acum":2064990},{"h":14,"real_acum":1966900,"esp_acum":2383230},{"h":15,"real_acum":1966900,"esp_acum":2760120},{"h":16,"real_acum":1966900,"esp_acum":3291030},{"h":17,"real_acum":1966900,"esp_acum":4024920},{"h":18,"real_acum":1966900,"esp_acum":4738920},{"h":19,"real_acum":1966900,"esp_acum":5100000}],"deptos":[{"Departamento":"PANTALON JEAN","Meta_Venta_num":1842781.0,"real":459600.0,"uds":4.0,"pct":24.9},{"Departamento":"CAMISETA","Meta_Venta_num":1358011.0,"real":778500.0,"uds":15.0,"pct":57.3},{"Departamento":"BERMUDA","Meta_Venta_num":506168.0,"real":199800.0,"uds":2.0,"pct":39.5},{"Departamento":"CAMISETA POLO","Meta_Venta_num":334801.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":292018.0,"real":176800.0,"uds":2.0,"pct":60.5},{"Departamento":"BLUSA","Meta_Venta_num":223662.0,"real":69900.0,"uds":1.0,"pct":31.3}],"genero":{"Femenino":1186200.0,"Masculino":780700.0}},{"id":"V95","meta":12300002,"real":4083600,"txn":31,"uds":80,"ticket":131729,"upt":2.6,"proy_pct":80.6,"acum_pct":33.2,"proy_val":9913801,"horas":[{"h":9,"real_acum":34900,"esp_acum":null},{"h":10,"real_acum":581100,"esp_acum":697410},{"h":11,"real_acum":1939900,"esp_acum":1846230},{"h":12,"real_acum":3118100,"esp_acum":3118050},{"h":13,"real_acum":3805200,"esp_acum":4137721},{"h":14,"real_acum":4083600,"esp_acum":5068831},{"h":15,"real_acum":4083600,"esp_acum":6275461},{"h":16,"real_acum":4083600,"esp_acum":7744081},{"h":17,"real_acum":4083600,"esp_acum":9394741},{"h":18,"real_acum":4083600,"esp_acum":10992511},{"h":19,"real_acum":4083600,"esp_acum":12300002}],"deptos":[{"Departamento":"PANTALON JEAN","Meta_Venta_num":4434908.0,"real":1069000.0,"uds":10.0,"pct":24.1},{"Departamento":"CAMISETA","Meta_Venta_num":1981803.0,"real":473700.0,"uds":13.0,"pct":23.9},{"Departamento":"BUSO","Meta_Venta_num":1793491.0,"real":309700.0,"uds":3.0,"pct":17.3},{"Departamento":"CHAQUETA","Meta_Venta_num":1123696.5,"real":369800.0,"uds":2.0,"pct":32.9},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":568399.0,"real":479300.0,"uds":7.0,"pct":84.3},{"Departamento":"CAMISA","Meta_Venta_num":448022.0,"real":339600.0,"uds":4.0,"pct":75.8}],"genero":{"Femenino":2234000.0,"Masculino":1849600.0}},{"id":"B99","meta":4100005,"real":1087500,"txn":7,"uds":15,"ticket":155357,"upt":2.1,"proy_pct":59.2,"acum_pct":26.5,"proy_val":2427203,"horas":[{"h":9,"real_acum":109900,"esp_acum":145550},{"h":10,"real_acum":686200,"esp_acum":539561},{"h":11,"real_acum":840800,"esp_acum":968831},{"h":12,"real_acum":840800,"esp_acum":1371042},{"h":13,"real_acum":840800,"esp_acum":1547752},{"h":14,"real_acum":1087500,"esp_acum":1837622},{"h":15,"real_acum":1087500,"esp_acum":2295593},{"h":16,"real_acum":1087500,"esp_acum":2829003},{"h":17,"real_acum":1087500,"esp_acum":3423094},{"h":18,"real_acum":1087500,"esp_acum":4002015},{"h":19,"real_acum":1087500,"esp_acum":4100005}],"deptos":[{"Departamento":"PANTALON JEAN","Meta_Venta_num":1422924.0,"real":529500.0,"uds":5.0,"pct":37.2},{"Departamento":"CAMISETA","Meta_Venta_num":1402536.0,"real":204500.0,"uds":5.0,"pct":14.6},{"Departamento":"BERMUDA","Meta_Venta_num":431465.0,"real":89900.0,"uds":1.0,"pct":20.8},{"Departamento":"BLUSA","Meta_Venta_num":177518.0,"real":89900.0,"uds":1.0,"pct":50.6},{"Departamento":"CAMISETA POLO","Meta_Venta_num":165276.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":137354.0,"real":73800.0,"uds":2.0,"pct":53.7}],"genero":{"Femenino":686200.0,"Masculino":401300.0}},{"id":"B55","meta":10099998,"real":2421700,"txn":14,"uds":33,"ticket":172979,"upt":2.4,"proy_pct":61.0,"acum_pct":24.0,"proy_val":6160999,"horas":[{"h":9,"real_acum":0,"esp_acum":null},{"h":10,"real_acum":369600,"esp_acum":156550},{"h":11,"real_acum":759100,"esp_acum":1254420},{"h":12,"real_acum":1233500,"esp_acum":2228060},{"h":13,"real_acum":1523000,"esp_acum":3086559},{"h":14,"real_acum":2421700,"esp_acum":3967279},{"h":15,"real_acum":2421700,"esp_acum":4901529},{"h":16,"real_acum":2421700,"esp_acum":6083229},{"h":17,"real_acum":2421700,"esp_acum":7647718},{"h":18,"real_acum":2421700,"esp_acum":9350578},{"h":19,"real_acum":2421700,"esp_acum":10099998}],"deptos":[{"Departamento":"CAMISETA","Meta_Venta_num":3484324.0,"real":773500.0,"uds":15.0,"pct":22.2},{"Departamento":"PANTALON JEAN","Meta_Venta_num":3165209.0,"real":1198900.0,"uds":11.0,"pct":37.9},{"Departamento":"BERMUDA","Meta_Venta_num":809976.0,"real":209800.0,"uds":2.0,"pct":25.9},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":781210.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"CAMISETA POLO","Meta_Venta_num":612883.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"CAMISA","Meta_Venta_num":484572.0,"real":79900.0,"uds":1.0,"pct":16.5}],"genero":{"Femenino":599100.0,"Masculino":1822600.0}},{"id":"A87","meta":5999999,"real":1592500,"txn":14,"uds":26,"ticket":113750,"upt":1.9,"proy_pct":54.8,"acum_pct":26.5,"proy_val":3287999,"horas":[{"h":9,"real_acum":359600,"esp_acum":210600},{"h":10,"real_acum":514400,"esp_acum":867000},{"h":11,"real_acum":1161400,"esp_acum":1665000},{"h":12,"real_acum":1435900,"esp_acum":2142000},{"h":13,"real_acum":1592500,"esp_acum":2496000},{"h":14,"real_acum":1592500,"esp_acum":2906400},{"h":15,"real_acum":1592500,"esp_acum":3428999},{"h":16,"real_acum":1592500,"esp_acum":4100999},{"h":17,"real_acum":1592500,"esp_acum":4910999},{"h":18,"real_acum":1592500,"esp_acum":5704199},{"h":19,"real_acum":1592500,"esp_acum":5999999}],"deptos":[{"Departamento":"PANTALON JEAN","Meta_Venta_num":2106741.0,"real":539500.0,"uds":5.0,"pct":25.6},{"Departamento":"CAMISETA","Meta_Venta_num":1582482.0,"real":449000.0,"uds":10.0,"pct":28.4},{"Departamento":"BERMUDA","Meta_Venta_num":779496.0,"real":389600.0,"uds":4.0,"pct":50.0},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":434509.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"CAMISETA POLO","Meta_Venta_num":343381.0,"real":59900.0,"uds":1.0,"pct":17.4},{"Departamento":"BLUSA","Meta_Venta_num":194327.0,"real":0.0,"uds":0.0,"pct":0.0}],"genero":{"Femenino":895600.0,"Masculino":696900.0}},{"id":"B88","meta":6599999,"real":1897000,"txn":17,"uds":30,"ticket":111588,"upt":1.8,"proy_pct":56.8,"acum_pct":28.7,"proy_val":3748799,"horas":[{"h":9,"real_acum":219800,"esp_acum":309540},{"h":10,"real_acum":719000,"esp_acum":1102200},{"h":11,"real_acum":1188300,"esp_acum":1851300},{"h":12,"real_acum":1557400,"esp_acum":2356200},{"h":13,"real_acum":1597300,"esp_acum":2835360},{"h":14,"real_acum":1897000,"esp_acum":3338279},{"h":15,"real_acum":1897000,"esp_acum":3996959},{"h":16,"real_acum":1897000,"esp_acum":4906439},{"h":17,"real_acum":1897000,"esp_acum":5840339},{"h":18,"real_acum":1897000,"esp_acum":6599999},{"h":19,"real_acum":1897000,"esp_acum":null}],"deptos":[{"Departamento":"PANTALON JEAN","Meta_Venta_num":2574958.0,"real":949100.0,"uds":9.0,"pct":36.9},{"Departamento":"CAMISETA","Meta_Venta_num":1888938.0,"real":748100.0,"uds":19.0,"pct":39.6},{"Departamento":"BERMUDA","Meta_Venta_num":734224.0,"real":99900.0,"uds":1.0,"pct":13.6},{"Departamento":"CAMISETA POLO","Meta_Venta_num":444138.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"BLUSA","Meta_Venta_num":291445.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":278272.0,"real":99900.0,"uds":1.0,"pct":35.9}],"genero":{"Femenino":918200.0,"Masculino":978800.0}},{"id":"V01","meta":3500001,"real":848700,"txn":6,"uds":13,"ticket":141450,"upt":2.2,"proy_pct":50.6,"acum_pct":24.2,"proy_val":1771001,"horas":[{"h":9,"real_acum":0,"esp_acum":82950},{"h":10,"real_acum":339300,"esp_acum":480550},{"h":11,"real_acum":339300,"esp_acum":940800},{"h":12,"real_acum":638900,"esp_acum":1244250},{"h":13,"real_acum":848700,"esp_acum":1479450},{"h":14,"real_acum":848700,"esp_acum":1678250},{"h":15,"real_acum":848700,"esp_acum":1936901},{"h":16,"real_acum":848700,"esp_acum":2296701},{"h":17,"real_acum":848700,"esp_acum":2737701},{"h":18,"real_acum":848700,"esp_acum":3344251},{"h":19,"real_acum":848700,"esp_acum":3500001}],"deptos":[{"Departamento":"CAMISETA","Meta_Venta_num":1032971.0,"real":299300.0,"uds":7.0,"pct":29.0},{"Departamento":"PANTALON JEAN","Meta_Venta_num":1029922.0,"real":319700.0,"uds":3.0,"pct":31.0},{"Departamento":"BERMUDA","Meta_Venta_num":414908.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":267020.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"CAMISETA POLO","Meta_Venta_num":228796.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"BLUSA","Meta_Venta_num":176398.0,"real":59900.0,"uds":1.0,"pct":34.0}],"genero":{"Femenino":539200.0,"Masculino":309500.0}},{"id":"B54","meta":8500000,"real":1752350,"txn":16,"uds":46,"ticket":109522,"upt":2.9,"proy_pct":43.9,"acum_pct":20.6,"proy_val":3731500,"horas":[{"h":9,"real_acum":166500,"esp_acum":534650},{"h":10,"real_acum":774950,"esp_acum":1510450},{"h":11,"real_acum":1462950,"esp_acum":2301800},{"h":12,"real_acum":1542750,"esp_acum":3028550},{"h":13,"real_acum":1582650,"esp_acum":3547900},{"h":14,"real_acum":1752350,"esp_acum":3991600},{"h":15,"real_acum":1752350,"esp_acum":4728550},{"h":16,"real_acum":1752350,"esp_acum":5554750},{"h":17,"real_acum":1752350,"esp_acum":6821250},{"h":18,"real_acum":1752350,"esp_acum":7946650},{"h":19,"real_acum":1752350,"esp_acum":8500000}],"deptos":[{"Departamento":"CAMISETA","Meta_Venta_num":2986216.0,"real":728100.0,"uds":19.0,"pct":24.4},{"Departamento":"PANTALON JEAN","Meta_Venta_num":2586852.0,"real":319700.0,"uds":3.0,"pct":12.4},{"Departamento":"BERMUDA","Meta_Venta_num":998798.0,"real":189800.0,"uds":2.0,"pct":19.0},{"Departamento":"CAMISETA POLO","Meta_Venta_num":486289.0,"real":89850.0,"uds":3.0,"pct":18.5},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":352184.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"CAMISA","Meta_Venta_num":334707.0,"real":0.0,"uds":0.0,"pct":0.0}],"genero":{"Femenino":1025000.0,"Masculino":727350.0}},{"id":"952","meta":15699995,"real":1811200,"txn":15,"uds":30,"ticket":120747,"upt":2.0,"proy_pct":29.7,"acum_pct":11.5,"proy_val":4662899,"horas":[{"h":9,"real_acum":0,"esp_acum":null},{"h":10,"real_acum":343500,"esp_acum":711210},{"h":11,"real_acum":633100,"esp_acum":2061409},{"h":12,"real_acum":1261900,"esp_acum":3518369},{"h":13,"real_acum":1581500,"esp_acum":4810479},{"h":14,"real_acum":1811200,"esp_acum":6096308},{"h":15,"real_acum":1811200,"esp_acum":7622348},{"h":16,"real_acum":1811200,"esp_acum":9270847},{"h":17,"real_acum":1811200,"esp_acum":11390347},{"h":18,"real_acum":1811200,"esp_acum":13638586},{"h":19,"real_acum":1811200,"esp_acum":15699995}],"deptos":[{"Departamento":"CAMISETA","Meta_Venta_num":4958334.0,"real":663600.0,"uds":14.0,"pct":13.4},{"Departamento":"PANTALON JEAN","Meta_Venta_num":4445550.0,"real":569500.0,"uds":5.0,"pct":12.8},{"Departamento":"BERMUDA","Meta_Venta_num":1651647.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":1394540.0,"real":189800.0,"uds":2.0,"pct":13.6},{"Departamento":"CAMISA","Meta_Venta_num":786901.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"BLUSA","Meta_Venta_num":700708.0,"real":249600.0,"uds":4.0,"pct":35.6}],"genero":{"Femenino":1328000.0,"Masculino":483200.0}},{"id":"B71","meta":1699998,"real":229600,"txn":2,"uds":4,"ticket":114800,"upt":2.0,"proy_pct":31.1,"acum_pct":13.5,"proy_val":528699,"horas":[{"h":9,"real_acum":0,"esp_acum":null},{"h":10,"real_acum":0,"esp_acum":63750},{"h":11,"real_acum":0,"esp_acum":234090},{"h":12,"real_acum":139700,"esp_acum":394569},{"h":13,"real_acum":229600,"esp_acum":550119},{"h":14,"real_acum":229600,"esp_acum":737629},{"h":15,"real_acum":229600,"esp_acum":904739},{"h":16,"real_acum":229600,"esp_acum":1110779},{"h":17,"real_acum":229600,"esp_acum":1352178},{"h":18,"real_acum":229600,"esp_acum":1614148},{"h":19,"real_acum":229600,"esp_acum":1699998}],"deptos":[{"Departamento":"PANTALON JEAN","Meta_Venta_num":453839.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"CAMISETA","Meta_Venta_num":321975.0,"real":79800.0,"uds":2.0,"pct":24.8},{"Departamento":"BUSO","Meta_Venta_num":267674.0,"real":59900.0,"uds":1.0,"pct":22.4},{"Departamento":"CHAQUETA","Meta_Venta_num":237396.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"PANTALON DRIL","Meta_Venta_num":78617.0,"real":0.0,"uds":0.0,"pct":0.0},{"Departamento":"ACCESORIOS MARROQUINERIA","Meta_Venta_num":73705.0,"real":0.0,"uds":0.0,"pct":0.0}],"genero":{"Femenino":229600.0}}]};
+
+const COLORS = { ok:'#22d07a', warn:'#f5a623', risk:'#ff7a3d', crit:'#ff4d4d' };
+const LABELS = { ok:'Bueno', warn:'Alerta', risk:'Riesgo', crit:'Crítico' };
+const fmt = (v) => v >= 1e6 ? '$' + (v/1e6).toFixed(1) + 'M' : '$' + Math.round(v/1000) + 'K';
+
+function getStatus(p) {
+  if (p >= 75) return 'ok';
+  if (p >= 55) return 'warn';
+  if (p >= 40) return 'risk';
+  return 'crit';
+}
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'resumen' && !window._chartsBuilt) buildCharts();
+}
+
+function buildCharts() {
+  window._chartsBuilt = true;
+  const h = DATA.hora_global;
+  new Chart(document.getElementById('chartHora'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(h).map(k => k + ' h'),
+      datasets: [{ data: Object.values(h), backgroundColor: Object.keys(h).map((k,i) => i===2?'#22d07a':'rgba(255,255,255,0.15)'), borderRadius: 4, barThickness: 28 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => fmt(ctx.parsed.y) } } }, scales:{ x:{ ticks:{color:'#5a5f6a', font:{size:11}}, grid:{color:'transparent'} }, y:{ ticks:{color:'#5a5f6a', font:{size:11}, callback: v => '$'+(v/1e6).toFixed(1)+'M'}, grid:{color:'rgba(255,255,255,0.04)'} } } }
+  });
+  const sorted = [...DATA.tiendas].sort((a,b) => a.proy_pct - b.proy_pct);
+  new Chart(document.getElementById('chartProy'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(t => t.id),
+      datasets: [
+        { label: 'Proyección', data: sorted.map(t => t.proy_pct), backgroundColor: sorted.map(t => COLORS[getStatus(t.proy_pct)]), borderRadius: 4, barThickness: 20 },
+        { label: 'Meta 100%', type:'line', data: sorted.map(()=>100), borderColor:'rgba(255,255,255,0.2)', borderDash:[4,3], borderWidth:1, pointRadius:0 }
+      ]
+    },
+    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ctx.datasetIndex===0 ? ctx.parsed.x.toFixed(1)+'%' : 'Meta 100%' } } }, scales:{ x:{ min:0, max:105, ticks:{color:'#5a5f6a', font:{size:10}, callback: v=>v+'%'}, grid:{color:'rgba(255,255,255,0.04)'} }, y:{ ticks:{color:'#9a9fa8', font:{size:12,weight:'600'}}, grid:{display:false} } } }
+  });
+}
+
+// Build tiendas list
+const lista = document.getElementById('lista-tiendas');
+DATA.tiendas.forEach(t => {
+  const st = getStatus(t.proy_pct);
+  const div = document.createElement('div');
+  div.className = 'tienda-card';
+  div.innerHTML = `
+    <div class="tienda-top">
+      <div>
+        <div style="display:flex;align-items:center">
+          <span class="tienda-id">${t.id}</span>
+          <span class="badge ${st}">${LABELS[st]}</span>
+        </div>
+        <div class="tienda-meta">Meta ${fmt(t.meta)} · Real ${fmt(t.real)} · ${t.txn} txn</div>
+      </div>
+      <div class="tienda-right">
+        <div class="tienda-pct" style="color:${COLORS[st]}">${t.proy_pct.toFixed(1)}%</div>
+        <div class="tienda-pct-label">proy. cierre</div>
+      </div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" style="width:${Math.min(t.proy_pct,100)}%;background:${COLORS[st]}"></div></div>
+    <div class="prog-labels"><span>Acum. ${t.acum_pct}%</span><span>Proy. ${t.proy_pct}%</span></div>
+    <div class="expand-panel">
+      <div class="stats-row">
+        <div class="stat-mini"><div class="stat-mini-label">Ticket</div><div class="stat-mini-val">${fmt(t.ticket)}</div></div>
+        <div class="stat-mini"><div class="stat-mini-label">UPT</div><div class="stat-mini-val">${t.upt}</div></div>
+        <div class="stat-mini"><div class="stat-mini-label">Uds.</div><div class="stat-mini-val">${t.uds}</div></div>
+      </div>
+      <div class="mini-label" style="margin-top:12px;margin-bottom:8px">Por departamento</div>
+      ${t.deptos.map(d => {
+        const c = d.pct===0?'#ff4d4d':d.pct<25?'#ff7a3d':d.pct<50?'#f5a623':'#22d07a';
+        return `<div class="depto-row">
+          <div class="depto-name">${d.Departamento.charAt(0)+d.Departamento.slice(1).toLowerCase()}${d.pct===0?'<span class="zero-tag">$0</span>':''}</div>
+          <div class="depto-track"><div class="depto-fill" style="width:${Math.min(d.pct,100)}%;background:${c}"></div></div>
+          <div class="depto-pct" style="color:${c}">${d.pct.toFixed(0)}%</div>
+        </div>`;
+      }).join('')}
+      <div class="gen-row">
+        ${Object.entries(t.genero).map(([g,v]) => `<div class="gen-block"><div class="gen-name">${g}</div><div class="gen-val">${fmt(v)}</div><div class="gen-sub">${(v/t.real*100).toFixed(0)}% del total</div></div>`).join('')}
+      </div>
+    </div>`;
+  div.addEventListener('click', () => div.classList.toggle('expanded'));
+  lista.appendChild(div);
+});
+
+// Mix deptos
+const deptoColors = ['#7b61ff','#22d07a','#f5a623','#9a9fa8','#4d9fff','#ff7a3d'];
+const dCont = document.getElementById('mix-deptos');
+const totalReal = DATA.global.total_real;
+DATA.dept_global.forEach((d,i) => {
+  const pct = (d.importe/totalReal*100);
+  dCont.innerHTML += `<div class="mix-row">
+    <div class="mix-name">${d.Departamento.charAt(0)+d.Departamento.slice(1).toLowerCase()}</div>
+    <div class="mix-track"><div class="mix-fill" style="width:${pct.toFixed(1)}%;background:${deptoColors[i%deptoColors.length]}"></div></div>
+    <div class="mix-val">${fmt(d.importe)} · ${pct.toFixed(1)}%</div>
+  </div>`;
+});
+
+// Mix género
+const gCont = document.getElementById('mix-genero');
+const genColors = {'Femenino':'#ff7ab0','Masculino':'#4d9fff'};
+const totalGen = Object.values(DATA.gen_global).reduce((a,b)=>a+b,0);
+Object.entries(DATA.gen_global).forEach(([g,v]) => {
+  const pct = (v/totalGen*100);
+  gCont.innerHTML += `<div class="mix-row" style="margin-bottom:12px">
+    <div class="mix-name" style="font-size:13px;font-weight:500">${g}</div>
+    <div class="mix-track" style="height:8px"><div class="mix-fill" style="width:${pct.toFixed(1)}%;height:8px;background:${genColors[g]}"></div></div>
+    <div class="mix-val">${fmt(v)} · ${pct.toFixed(1)}%</div>
+  </div>`;
+});
+
+buildCharts();
+</script>
+</body>
+</html>
